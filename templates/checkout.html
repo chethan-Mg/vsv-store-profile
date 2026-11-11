@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block title %}Checkout - VSV Store{% endblock %}
+
+{% block extra_css %}
+<style>
+    .checkout-form {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+        padding: 2rem;
+    }
+
+    .checkout-form h5 {
+        color: var(--vsv-primary);
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.8rem;
+        border-bottom: 2px solid var(--vsv-light-green);
+    }
+
+    .checkout-form .form-label {
+        font-weight: 500;
+        color: #555;
+        font-size: 0.9rem;
+    }
+
+    .checkout-form .form-control {
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        padding: 0.6rem 1rem;
+        transition: border-color 0.2s ease;
+    }
+
+    .checkout-form .form-control:focus {
+        border-color: var(--vsv-accent);
+        box-shadow: 0 0 0 0.2rem rgba(45, 106, 79, 0.1);
+    }
+
+    .order-summary-checkout {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+        padding: 1.5rem;
+        position: sticky;
+        top: 90px;
+    }
+
+    .order-summary-checkout h5 {
+        color: var(--vsv-primary);
+        font-weight: 600;
+        margin-bottom: 1.2rem;
+    }
+
+    .checkout-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.6rem 0;
+        border-bottom: 1px solid #f0f0f0;
+        font-size: 0.9rem;
+    }
+
+    .checkout-item:last-of-type {
+        border-bottom: none;
+    }
+
+    .checkout-total {
+        border-top: 2px solid var(--vsv-accent);
+        padding-top: 1rem;
+        margin-top: 0.5rem;
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--vsv-primary);
+    }
+
+    .payment-method {
+        background: var(--vsv-light-green);
+        border-radius: 10px;
+        padding: 1rem 1.2rem;
+        border: 2px solid var(--vsv-accent);
+    }
+
+    .payment-method i {
+        color: var(--vsv-primary);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('index') }}" class="text-decoration-none" style="color: var(--vsv-primary);">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('cart') }}" class="text-decoration-none" style="color: var(--vsv-primary);">Cart</a></li>
+            <li class="breadcrumb-item active">Checkout</li>
+        </ol>
+    </nav>
+
+    <h2 class="section-title mb-4"><i class="fas fa-credit-card me-2"></i>Checkout</h2>
+
+    <form action="{{ url_for('checkout') }}" method="POST">
+        <div class="row g-4">
+            <!-- Delivery Details -->
+            <div class="col-lg-7">
+                <div class="checkout-form">
+                    <h5><i class="fas fa-truck me-2"></i>Delivery Details</h5>
+
+                    <div class="mb-3">
+                        <label for="full_name" class="form-label">Full Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="full_name" name="full_name" placeholder="Enter your full name" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">Phone Number <span class="text-danger">*</span></label>
+                        <input type="tel" class="form-control" id="phone" name="phone" placeholder="Enter your phone number" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="address" class="form-label">Delivery Address <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="address" name="address" rows="3" placeholder="House/Flat No., Street, Landmark..." required></textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="city" class="form-label">City <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="city" name="city" placeholder="City" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="pincode" class="form-label">Pincode <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="pincode" name="pincode" placeholder="6-digit pincode" pattern="[0-9]{6}" required>
+                        </div>
+                    </div>
+
+                    <!-- Payment Method -->
+                    <h5 class="mt-4"><i class="fas fa-wallet me-2"></i>Payment Method</h5>
+                    <div class="payment-method d-flex align-items-center gap-3">
+                        <i class="fas fa-money-bill-wave fa-2x"></i>
+                        <div>
+                            <h6 class="mb-0 fw-600">Cash on Delivery</h6>
+                            <p class="small text-muted mb-0">Pay when your order is delivered</p>
+                        </div>
+                        <i class="fas fa-check-circle ms-auto text-success fa-lg"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="col-lg-5">
+                <div class="order-summary-checkout">
+                    <h5><i class="fas fa-receipt me-2"></i>Order Summary</h5>
+
+                    {% set subtotal = namespace(value=0) %}
+                    {% for item in cart_items %}
+                    {% set item_total = item.product.price * item.quantity %}
+                    {% set subtotal.value = subtotal.value + item_total %}
+                    <div class="checkout-item">
+                        <div>
+                            <span class="fw-500">{{ item.product.name }}</span>
+                            <span class="text-muted small"> × {{ item.quantity }}</span>
+                        </div>
+                        <span>₹{{ "%.2f"|format(item_total) }}</span>
+                    </div>
+                    {% endfor %}
+
+                    <div class="checkout-item">
+                        <span>Subtotal</span>
+                        <span>₹{{ "%.2f"|format(subtotal.value) }}</span>
+                    </div>
+
+                    <div class="checkout-item">
+                        <span>Delivery</span>
+                        {% if subtotal.value >= 500 %}
+                        <span class="text-success">FREE</span>
+                        {% else %}
+                        <span>₹40.00</span>
+                        {% endif %}
+                    </div>
+
+                    {% set delivery = 0 if subtotal.value >= 500 else 40 %}
+                    <div class="d-flex justify-content-between checkout-total">
+                        <span>Total</span>
+                        <span>₹{{ "%.2f"|format(subtotal.value + delivery) }}</span>
+                    </div>
+
+                    <button type="submit" class="btn btn-vsv w-100 btn-lg mt-4">
+                        <i class="fas fa-check-circle me-2"></i>Place Order
+                    </button>
+
+                    <a href="{{ url_for('cart') }}" class="btn btn-vsv-outline w-100 mt-2">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Cart
+                    </a>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

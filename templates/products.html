@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block title %}{{ current_category.name if current_category else 'All Products' }} - VSV Store{% endblock %}
+
+{% block extra_css %}
+<style>
+    .sidebar-filter {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+        padding: 1.5rem;
+        position: sticky;
+        top: 90px;
+    }
+
+    .sidebar-filter h5 {
+        color: var(--vsv-primary);
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    .filter-list .list-group-item {
+        border: none;
+        border-radius: 8px;
+        padding: 0.6rem 1rem;
+        margin-bottom: 2px;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+        color: var(--vsv-text);
+    }
+
+    .filter-list .list-group-item:hover,
+    .filter-list .list-group-item.active {
+        background: var(--vsv-light-green);
+        color: var(--vsv-primary);
+        font-weight: 500;
+    }
+
+    .filter-list .list-group-item.active {
+        background: var(--vsv-primary);
+        color: #fff;
+    }
+
+    .sort-select {
+        border: 2px solid var(--vsv-accent);
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+        color: var(--vsv-primary);
+    }
+
+    .sort-select:focus {
+        border-color: var(--vsv-primary);
+        box-shadow: 0 0 0 0.2rem rgba(45, 106, 79, 0.15);
+    }
+
+    .product-grid-card {
+        border: none;
+        border-radius: 12px;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        background: #fff;
+    }
+
+    .product-grid-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .product-grid-card .product-img-placeholder {
+        height: 180px;
+    }
+
+    .results-count {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('index') }}" class="text-decoration-none" style="color: var(--vsv-primary);">Home</a></li>
+            <li class="breadcrumb-item active">{{ current_category.name if current_category else 'All Products' }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Sidebar Filters -->
+        <div class="col-lg-3 mb-4">
+            <div class="sidebar-filter">
+                <h5><i class="fas fa-filter me-2"></i>Categories</h5>
+                <div class="list-group filter-list">
+                    <a href="{{ url_for('products') }}" class="list-group-item list-group-item-action {{ 'active' if not current_category }}">
+                        <i class="fas fa-border-all me-2"></i>All Products
+                    </a>
+                    {% for category in categories %}
+                    <a href="{{ url_for('products', category=category.id) }}" class="list-group-item list-group-item-action {{ 'active' if current_category and current_category.id == category.id }}">
+                        {{ category.name }}
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Grid -->
+        <div class="col-lg-9">
+            <!-- Header & Sort -->
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                <div>
+                    <h3 class="section-title mb-0">{{ current_category.name if current_category else 'All Products' }}</h3>
+                    <p class="results-count mb-0">{{ products|length }} product{{ 's' if products|length != 1 else '' }} found</p>
+                </div>
+                <div>
+                    <form action="" method="GET" class="d-flex align-items-center gap-2">
+                        {% if current_category %}
+                        <input type="hidden" name="category" value="{{ current_category.id }}">
+                        {% endif %}
+                        <label class="text-muted small text-nowrap">Sort by:</label>
+                        <select name="sort" class="form-select sort-select" onchange="this.form.submit()">
+                            <option value="name" {{ 'selected' if request.args.get('sort') == 'name' }}>Name (A-Z)</option>
+                            <option value="price_low" {{ 'selected' if request.args.get('sort') == 'price_low' }}>Price: Low to High</option>
+                            <option value="price_high" {{ 'selected' if request.args.get('sort') == 'price_high' }}>Price: High to Low</option>
+                        </select>
+                    </form>
+                </div>
+            </div>
+
+            {% if products %}
+            <div class="row g-3">
+                {% for product in products %}
+                <div class="col-6 col-md-4">
+                    <div class="card product-grid-card h-100">
+                        <a href="{{ url_for('product_detail', id=product.id) }}" class="text-decoration-none">
+                            {% if product.image_url %}
+                            <img src="{{ product.image_url }}" class="card-img-top" alt="{{ product.name }}" style="height: 180px; object-fit: cover;">
+                            {% else %}
+                            <div class="product-img-placeholder">
+                                <i class="fas fa-basket-shopping"></i>
+                            </div>
+                            {% endif %}
+                        </a>
+                        <div class="card-body d-flex flex-column p-3">
+                            <p class="text-muted small mb-1">{{ product.category.name if product.category else 'General' }}</p>
+                            <h6 class="fw-600 mb-2">
+                                <a href="{{ url_for('product_detail', id=product.id) }}" class="text-decoration-none text-dark">{{ product.name }}</a>
+                            </h6>
+                            <div class="mt-auto">
+                                <!-- Stock Status -->
+                                <div class="mb-2">
+                                    {% if product.stock > 10 %}
+                                    <span class="badge badge-in-stock"><i class="fas fa-check-circle me-1"></i>In Stock</span>
+                                    {% elif product.stock > 0 %}
+                                    <span class="badge badge-low-stock"><i class="fas fa-exclamation-circle me-1"></i>Only {{ product.stock }} left</span>
+                                    {% else %}
+                                    <span class="badge badge-out-of-stock"><i class="fas fa-times-circle me-1"></i>Out of Stock</span>
+                                    {% endif %}
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="fw-bold fs-5" style="color: var(--vsv-primary);">₹{{ "%.2f"|format(product.price) }}</span>
+                                    {% if product.stock > 0 %}
+                                    <form action="{{ url_for('add_to_cart', id=product.id) }}" method="POST">
+                                        <button type="submit" class="btn btn-sm btn-vsv">
+                                            <i class="fas fa-cart-plus"></i>
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">No products found</h5>
+                <p class="text-muted">Try browsing a different category or check back later.</p>
+                <a href="{{ url_for('products') }}" class="btn btn-vsv">View All Products</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

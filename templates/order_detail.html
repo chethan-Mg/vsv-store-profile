@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block title %}Order #{{ order.id }} - VSV Store{% endblock %}
+
+{% block extra_css %}
+<style>
+    .order-detail-card {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+        padding: 2rem;
+    }
+
+    .order-info-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .order-info-row:last-child {
+        border-bottom: none;
+    }
+
+    .order-info-label {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+
+    .order-info-value {
+        font-weight: 500;
+    }
+
+    .order-items-table {
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .order-items-table thead {
+        background: var(--vsv-light-green);
+        color: var(--vsv-primary);
+    }
+
+    .order-items-table th {
+        font-weight: 600;
+        font-size: 0.9rem;
+        padding: 0.8rem 1rem;
+        border: none;
+    }
+
+    .order-items-table td {
+        padding: 0.8rem 1rem;
+        vertical-align: middle;
+    }
+
+    .total-row {
+        background: var(--vsv-light-green);
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: var(--vsv-primary);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('index') }}" class="text-decoration-none" style="color: var(--vsv-primary);">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('orders') }}" class="text-decoration-none" style="color: var(--vsv-primary);">My Orders</a></li>
+            <li class="breadcrumb-item active">Order #{{ order.id }}</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <h2 class="section-title mb-0"><i class="fas fa-box me-2"></i>Order #{{ order.id }}</h2>
+        <span class="badge rounded-pill py-2 px-4 fs-6 status-{{ order.status|lower if order.status else 'pending' }}">
+            {{ order.status or 'Pending' }}
+        </span>
+    </div>
+
+    <div class="row g-4">
+        <!-- Order Info -->
+        <div class="col-lg-4">
+            <div class="order-detail-card">
+                <h5 class="fw-600 mb-3" style="color: var(--vsv-primary);">
+                    <i class="fas fa-info-circle me-2"></i>Order Information
+                </h5>
+
+                <div class="order-info-row">
+                    <span class="order-info-label">Order ID</span>
+                    <span class="order-info-value">#{{ order.id }}</span>
+                </div>
+                <div class="order-info-row">
+                    <span class="order-info-label">Date</span>
+                    <span class="order-info-value">{{ order.date.strftime('%d %b %Y, %I:%M %p') if order.date else 'N/A' }}</span>
+                </div>
+                <div class="order-info-row">
+                    <span class="order-info-label">Status</span>
+                    <span class="order-info-value">{{ order.status or 'Pending' }}</span>
+                </div>
+                <div class="order-info-row">
+                    <span class="order-info-label">Total</span>
+                    <span class="order-info-value fw-bold" style="color: var(--vsv-primary);">₹{{ "%.2f"|format(order.total) }}</span>
+                </div>
+
+                {% if order.address %}
+                <hr>
+                <h6 class="fw-600" style="color: var(--vsv-primary);">
+                    <i class="fas fa-map-marker-alt me-2"></i>Delivery Address
+                </h6>
+                <p class="text-muted small mb-0">{{ order.address }}</p>
+                {% endif %}
+
+                {% if order.phone %}
+                <div class="mt-2">
+                    <span class="text-muted small"><i class="fas fa-phone me-1"></i>{{ order.phone }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Order Items -->
+        <div class="col-lg-8">
+            <div class="order-detail-card">
+                <h5 class="fw-600 mb-3" style="color: var(--vsv-primary);">
+                    <i class="fas fa-list me-2"></i>Order Items
+                </h5>
+
+                <div class="table-responsive">
+                    <table class="table order-items-table mb-0">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th class="text-center">Qty</th>
+                                <th class="text-end">Price</th>
+                                <th class="text-end">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in order.items %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div style="width: 40px; height: 40px; border-radius: 8px; overflow: hidden; flex-shrink: 0;">
+                                            {% if item.product and item.product.image_url %}
+                                            <img src="{{ item.product.image_url }}" class="w-100 h-100" style="object-fit: cover;" alt="">
+                                            {% else %}
+                                            <div class="product-img-placeholder small" style="min-height: 40px; font-size: 0.9rem;">
+                                                <i class="fas fa-basket-shopping"></i>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        <span class="fw-500">{{ item.product.name if item.product else 'Product' }}</span>
+                                    </div>
+                                </td>
+                                <td class="text-center">{{ item.quantity }}</td>
+                                <td class="text-end">₹{{ "%.2f"|format(item.price) }}</td>
+                                <td class="text-end fw-500">₹{{ "%.2f"|format(item.price * item.quantity) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr class="total-row">
+                                <td colspan="3" class="text-end">Total Amount</td>
+                                <td class="text-end">₹{{ "%.2f"|format(order.total) }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a href="{{ url_for('orders') }}" class="btn btn-vsv-outline">
+            <i class="fas fa-arrow-left me-2"></i>Back to My Orders
+        </a>
+    </div>
+</div>
+{% endblock %}

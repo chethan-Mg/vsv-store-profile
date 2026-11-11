@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}VSV Store - Fresh Groceries{% endblock %}</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome 6 -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* ===== VSV Store Green Theme ===== */
+        :root {
+            --vsv-primary: #2d6a4f;
+            --vsv-secondary: #40916c;
+            --vsv-accent: #95d5b2;
+            --vsv-bg: #f8f9fa;
+            --vsv-text: #212529;
+            --vsv-cart-badge: #e63946;
+            --vsv-light-green: #d8f3dc;
+            --vsv-dark-green: #1b4332;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--vsv-bg);
+            color: var(--vsv-text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        main {
+            flex: 1;
+        }
+
+        /* ===== Navbar ===== */
+        .navbar-vsv {
+            background: linear-gradient(135deg, var(--vsv-primary), var(--vsv-secondary));
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+            padding: 0.6rem 0;
+        }
+
+        .navbar-vsv .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: #fff !important;
+            letter-spacing: 0.5px;
+        }
+
+        .navbar-vsv .navbar-brand i {
+            color: var(--vsv-accent);
+            margin-right: 8px;
+        }
+
+        .navbar-vsv .nav-link {
+            color: rgba(255, 255, 255, 0.9) !important;
+            font-weight: 500;
+            font-size: 0.95rem;
+            padding: 0.5rem 1rem !important;
+            transition: color 0.2s ease, background 0.2s ease;
+            border-radius: 6px;
+        }
+
+        .navbar-vsv .nav-link:hover,
+        .navbar-vsv .nav-link.active {
+            color: #fff !important;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .navbar-vsv .dropdown-menu {
+            border: none;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+            border-radius: 10px;
+            padding: 0.5rem;
+        }
+
+        .navbar-vsv .dropdown-item {
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            transition: background 0.2s ease;
+        }
+
+        .navbar-vsv .dropdown-item:hover {
+            background-color: var(--vsv-light-green);
+            color: var(--vsv-primary);
+        }
+
+        .navbar-search .form-control {
+            border-radius: 20px 0 0 20px;
+            border: none;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+        }
+
+        .navbar-search .form-control:focus {
+            box-shadow: none;
+        }
+
+        .navbar-search .btn {
+            border-radius: 0 20px 20px 0;
+            background: var(--vsv-accent);
+            border: none;
+            color: var(--vsv-primary);
+            padding: 0.5rem 1rem;
+        }
+
+        .navbar-search .btn:hover {
+            background: var(--vsv-light-green);
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: var(--vsv-cart-badge);
+            color: #fff;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        .cart-icon-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        /* ===== Buttons ===== */
+        .btn-vsv {
+            background: linear-gradient(135deg, var(--vsv-primary), var(--vsv-secondary));
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 0.5rem 1.5rem;
+            font-weight: 500;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .btn-vsv:hover {
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(45, 106, 79, 0.35);
+        }
+
+        .btn-vsv-outline {
+            background: transparent;
+            color: var(--vsv-primary);
+            border: 2px solid var(--vsv-primary);
+            border-radius: 8px;
+            padding: 0.5rem 1.5rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .btn-vsv-outline:hover {
+            background: var(--vsv-primary);
+            color: #fff;
+            transform: translateY(-2px);
+        }
+
+        /* ===== Cards ===== */
+        .card-vsv {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden;
+        }
+
+        .card-vsv:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        /* ===== Section Titles ===== */
+        .section-title {
+            font-weight: 700;
+            color: var(--vsv-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .section-subtitle {
+            color: #6c757d;
+            font-size: 0.95rem;
+        }
+
+        .section-divider {
+            width: 60px;
+            height: 3px;
+            background: var(--vsv-accent);
+            margin: 1rem auto;
+            border-radius: 3px;
+        }
+
+        /* ===== Footer ===== */
+        .footer-vsv {
+            background: linear-gradient(135deg, var(--vsv-dark-green), var(--vsv-primary));
+            color: rgba(255, 255, 255, 0.85);
+            padding: 3rem 0 1rem;
+        }
+
+        .footer-vsv h5 {
+            color: var(--vsv-accent);
+            font-weight: 600;
+            margin-bottom: 1.2rem;
+        }
+
+        .footer-vsv a {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .footer-vsv a:hover {
+            color: var(--vsv-accent);
+        }
+
+        .footer-vsv .footer-links li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-vsv .social-icons a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            margin-right: 10px;
+            transition: background 0.3s ease;
+        }
+
+        .footer-vsv .social-icons a:hover {
+            background: var(--vsv-accent);
+            color: var(--vsv-primary);
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 1rem;
+            margin-top: 2rem;
+        }
+
+        /* ===== Flash Messages ===== */
+        .flash-container {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 9999;
+            max-width: 400px;
+        }
+
+        .flash-message {
+            animation: slideInRight 0.4s ease-out;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* ===== Product Image Placeholder ===== */
+        .product-img-placeholder {
+            background: linear-gradient(135deg, var(--vsv-light-green), var(--vsv-accent));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--vsv-primary);
+            font-size: 3rem;
+            min-height: 200px;
+        }
+
+        .product-img-placeholder.small {
+            min-height: 80px;
+            font-size: 1.5rem;
+        }
+
+        /* ===== Badge Styles ===== */
+        .badge-in-stock {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .badge-out-of-stock {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .badge-low-stock {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        /* ===== Status Badges ===== */
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .status-confirmed {
+            background-color: #cce5ff;
+            color: #004085;
+        }
+
+        .status-shipped {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .status-delivered {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status-cancelled {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        /* ===== Scrollbar ===== */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--vsv-bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--vsv-accent);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--vsv-secondary);
+        }
+
+        /* ===== Animations ===== */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== Responsive ===== */
+        @media (max-width: 768px) {
+            .navbar-search {
+                margin: 0.5rem 0;
+            }
+
+            .footer-vsv {
+                text-align: center;
+            }
+        }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-vsv sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="fas fa-leaf"></i>VSV Store
+            </a>
+
+            <button class="navbar-toggler border-0 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
+                <i class="fas fa-bars"></i>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarMain">
+                <!-- Search Bar -->
+                <form class="d-flex navbar-search mx-lg-4 flex-grow-1" action="{{ url_for('products') }}" method="GET" style="max-width: 400px;">
+                    <input class="form-control" type="search" name="q" placeholder="Search groceries..." aria-label="Search">
+                    <button class="btn" type="submit"><i class="fas fa-search"></i></button>
+                </form>
+
+                <ul class="navbar-nav ms-auto align-items-lg-center">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}"><i class="fas fa-home me-1"></i>Home</a>
+                    </li>
+
+                    <!-- Categories Dropdown -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-th-large me-1"></i>Categories
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('products') }}">All Products</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            {% for category in categories %}
+                            <li><a class="dropdown-item" href="{{ url_for('products', category=category.id) }}">{{ category.name }}</a></li>
+                            {% endfor %}
+                        </ul>
+                    </li>
+
+                    <!-- Cart -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('cart') }}">
+                            <span class="cart-icon-wrapper">
+                                <i class="fas fa-shopping-cart"></i>
+                                {% if cart_count and cart_count > 0 %}
+                                <span class="cart-badge">{{ cart_count }}</span>
+                                {% endif %}
+                            </span>
+                            <span class="ms-1 d-lg-none">Cart</span>
+                        </a>
+                    </li>
+
+                    <!-- Auth Links -->
+                    {% if current_user.is_authenticated %}
+                        {% if current_user.is_admin %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('admin_dashboard') }}">
+                                <i class="fas fa-tachometer-alt me-1"></i>Admin
+                            </a>
+                        </li>
+                        {% endif %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-user-circle me-1"></i>{{ current_user.username }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="{{ url_for('orders') }}"><i class="fas fa-box me-2"></i>My Orders</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('login') }}"><i class="fas fa-sign-in-alt me-1"></i>Login</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link btn btn-sm ms-2" style="background: rgba(255,255,255,0.2); padding: 0.4rem 1rem !important;" href="{{ url_for('register') }}">Register</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    <div class="flash-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ 'success' if category == 'success' else 'danger' if category == 'error' or category == 'danger' else 'info' if category == 'info' else 'warning' if category == 'warning' else 'info' }} alert-dismissible fade show flash-message" role="alert">
+                    <i class="fas fa-{{ 'check-circle' if category == 'success' else 'exclamation-circle' if category == 'error' or category == 'danger' else 'info-circle' if category == 'info' else 'exclamation-triangle' }} me-2"></i>
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Main Content -->
+    <main class="fade-in">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer-vsv">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 mb-4">
+                    <h5><i class="fas fa-leaf me-2"></i>VSV Store</h5>
+                    <p class="small">Your trusted neighborhood grocery store, now online. We bring the freshest products right to your doorstep with quality you can trust.</p>
+                    <div class="social-icons">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-whatsapp"></i></a>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-4 mb-4">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled footer-links">
+                        <li><a href="{{ url_for('index') }}">Home</a></li>
+                        <li><a href="{{ url_for('products') }}">Products</a></li>
+                        <li><a href="{{ url_for('cart') }}">Cart</a></li>
+                        {% if current_user.is_authenticated %}
+                        <li><a href="{{ url_for('orders') }}">My Orders</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-4 mb-4">
+                    <h5>Categories</h5>
+                    <ul class="list-unstyled footer-links">
+                        {% for category in categories %}
+                        <li><a href="{{ url_for('products', category=category.id) }}">{{ category.name }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-4 mb-4">
+                    <h5>Contact Us</h5>
+                    <ul class="list-unstyled footer-links">
+                        <li><i class="fas fa-map-marker-alt me-2"></i>123 Market Street, City</li>
+                        <li><i class="fas fa-phone me-2"></i>+91 98765 43210</li>
+                        <li><i class="fas fa-envelope me-2"></i>support@vsvstore.com</li>
+                        <li><i class="fas fa-clock me-2"></i>Mon-Sun: 8AM - 10PM</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom text-center">
+                <p class="small mb-0">&copy; {{ 2024 }} VSV Store. All rights reserved. Made with <i class="fas fa-heart text-danger"></i> for fresh groceries.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Auto-dismiss flash messages -->
+    <script>
+        setTimeout(function() {
+            document.querySelectorAll('.flash-message').forEach(function(el) {
+                var bsAlert = bootstrap.Alert.getOrCreateInstance(el);
+                bsAlert.close();
+            });
+        }, 4000);
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

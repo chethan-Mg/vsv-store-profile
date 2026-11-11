@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}My Orders - VSV Store{% endblock %}
+
+{% block extra_css %}
+<style>
+    .orders-container {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    }
+
+    .order-card {
+        padding: 1.5rem;
+        border-bottom: 1px solid #f0f0f0;
+        transition: background 0.2s ease;
+    }
+
+    .order-card:last-child {
+        border-bottom: none;
+    }
+
+    .order-card:hover {
+        background: #fafffe;
+    }
+
+    .order-id {
+        font-weight: 700;
+        color: var(--vsv-primary);
+    }
+
+    .order-date {
+        color: #6c757d;
+        font-size: 0.85rem;
+    }
+
+    .order-total {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--vsv-primary);
+    }
+
+    .empty-orders {
+        text-align: center;
+        padding: 4rem 0;
+    }
+
+    .empty-orders i {
+        font-size: 5rem;
+        color: var(--vsv-accent);
+        margin-bottom: 1.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('index') }}" class="text-decoration-none" style="color: var(--vsv-primary);">Home</a></li>
+            <li class="breadcrumb-item active">My Orders</li>
+        </ol>
+    </nav>
+
+    <h2 class="section-title mb-4"><i class="fas fa-box me-2"></i>My Orders</h2>
+
+    {% if orders and orders|length > 0 %}
+    <div class="orders-container">
+        {% for order in orders %}
+        <div class="order-card">
+            <div class="row align-items-center">
+                <div class="col-md-3">
+                    <span class="order-id">Order #{{ order.id }}</span>
+                    <p class="order-date mb-0">
+                        <i class="fas fa-calendar-alt me-1"></i>
+                        {{ order.date.strftime('%d %b %Y, %I:%M %p') if order.date else 'N/A' }}
+                    </p>
+                </div>
+                <div class="col-md-3 mt-2 mt-md-0">
+                    <span class="badge rounded-pill py-2 px-3 status-{{ order.status|lower if order.status else 'pending' }}">
+                        {% if order.status == 'Pending' %}
+                        <i class="fas fa-clock me-1"></i>
+                        {% elif order.status == 'Confirmed' %}
+                        <i class="fas fa-check me-1"></i>
+                        {% elif order.status == 'Shipped' %}
+                        <i class="fas fa-truck me-1"></i>
+                        {% elif order.status == 'Delivered' %}
+                        <i class="fas fa-check-double me-1"></i>
+                        {% elif order.status == 'Cancelled' %}
+                        <i class="fas fa-times me-1"></i>
+                        {% endif %}
+                        {{ order.status or 'Pending' }}
+                    </span>
+                </div>
+                <div class="col-md-3 mt-2 mt-md-0">
+                    <span class="order-total">₹{{ "%.2f"|format(order.total) }}</span>
+                </div>
+                <div class="col-md-3 mt-2 mt-md-0 text-md-end">
+                    <a href="{{ url_for('order_detail', id=order.id) }}" class="btn btn-sm btn-vsv-outline">
+                        <i class="fas fa-eye me-1"></i>View Details
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="empty-orders">
+        <i class="fas fa-box-open"></i>
+        <h4 class="text-muted">No orders yet</h4>
+        <p class="text-muted mb-4">You haven't placed any orders yet. Start shopping now!</p>
+        <a href="{{ url_for('products') }}" class="btn btn-vsv btn-lg">
+            <i class="fas fa-shopping-basket me-2"></i>Start Shopping
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

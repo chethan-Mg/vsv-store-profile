@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.name }} - VSV Store{% endblock %}
+
+{% block extra_css %}
+<style>
+    .product-detail-img {
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .product-detail-img .product-img-placeholder {
+        min-height: 400px;
+        font-size: 5rem;
+    }
+
+    .product-detail-info h1 {
+        font-weight: 700;
+        color: var(--vsv-text);
+    }
+
+    .product-detail-price {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--vsv-primary);
+    }
+
+    .product-detail-category {
+        display: inline-block;
+        background: var(--vsv-light-green);
+        color: var(--vsv-primary);
+        padding: 0.3rem 1rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .quantity-input {
+        display: flex;
+        align-items: center;
+        gap: 0;
+        border: 2px solid var(--vsv-accent);
+        border-radius: 10px;
+        overflow: hidden;
+        width: fit-content;
+    }
+
+    .quantity-input .btn {
+        border: none;
+        border-radius: 0;
+        padding: 0.5rem 1rem;
+        background: var(--vsv-light-green);
+        color: var(--vsv-primary);
+        font-weight: 600;
+    }
+
+    .quantity-input .btn:hover {
+        background: var(--vsv-accent);
+    }
+
+    .quantity-input input {
+        border: none;
+        text-align: center;
+        width: 60px;
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+
+    .quantity-input input:focus {
+        outline: none;
+        box-shadow: none;
+    }
+
+    .product-description {
+        line-height: 1.8;
+        color: #555;
+    }
+
+    @media (max-width: 768px) {
+        .product-detail-img .product-img-placeholder {
+            min-height: 250px;
+            font-size: 3rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('index') }}" class="text-decoration-none" style="color: var(--vsv-primary);">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('products') }}" class="text-decoration-none" style="color: var(--vsv-primary);">Products</a></li>
+            {% if product.category %}
+            <li class="breadcrumb-item"><a href="{{ url_for('products', category=product.category.id) }}" class="text-decoration-none" style="color: var(--vsv-primary);">{{ product.category.name }}</a></li>
+            {% endif %}
+            <li class="breadcrumb-item active">{{ product.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="row g-5">
+        <!-- Product Image -->
+        <div class="col-lg-6">
+            <div class="product-detail-img">
+                {% if product.image_url %}
+                <img src="{{ product.image_url }}" class="w-100" alt="{{ product.name }}" style="max-height: 450px; object-fit: cover; border-radius: 16px;">
+                {% else %}
+                <div class="product-img-placeholder">
+                    <i class="fas fa-basket-shopping"></i>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Product Info -->
+        <div class="col-lg-6 product-detail-info">
+            {% if product.category %}
+            <span class="product-detail-category mb-3">{{ product.category.name }}</span>
+            {% endif %}
+
+            <h1 class="mt-3 mb-3">{{ product.name }}</h1>
+
+            <p class="product-detail-price mb-3">₹{{ "%.2f"|format(product.price) }}</p>
+
+            <!-- Stock Status -->
+            <div class="mb-4">
+                {% if product.stock > 10 %}
+                <span class="badge badge-in-stock py-2 px-3"><i class="fas fa-check-circle me-1"></i>In Stock ({{ product.stock }} available)</span>
+                {% elif product.stock > 0 %}
+                <span class="badge badge-low-stock py-2 px-3"><i class="fas fa-exclamation-circle me-1"></i>Low Stock - Only {{ product.stock }} left!</span>
+                {% else %}
+                <span class="badge badge-out-of-stock py-2 px-3"><i class="fas fa-times-circle me-1"></i>Out of Stock</span>
+                {% endif %}
+            </div>
+
+            <!-- Description -->
+            {% if product.description %}
+            <div class="mb-4">
+                <h5 class="fw-600">Description</h5>
+                <p class="product-description">{{ product.description }}</p>
+            </div>
+            {% endif %}
+
+            <!-- Add to Cart Form -->
+            {% if product.stock > 0 %}
+            <form action="{{ url_for('add_to_cart', id=product.id) }}" method="POST">
+                <div class="d-flex align-items-center gap-3 mb-4">
+                    <label class="fw-500 text-muted">Quantity:</label>
+                    <div class="quantity-input">
+                        <button type="button" class="btn" onclick="changeQty(-1)"><i class="fas fa-minus"></i></button>
+                        <input type="number" name="quantity" id="qty" value="1" min="1" max="{{ product.stock }}" readonly>
+                        <button type="button" class="btn" onclick="changeQty(1)"><i class="fas fa-plus"></i></button>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-vsv btn-lg px-5">
+                    <i class="fas fa-cart-plus me-2"></i>Add to Cart
+                </button>
+            </form>
+            {% else %}
+            <button class="btn btn-secondary btn-lg px-5" disabled>
+                <i class="fas fa-ban me-2"></i>Out of Stock
+            </button>
+            {% endif %}
+
+            <div class="mt-4">
+                <a href="{{ url_for('products') }}" class="text-decoration-none" style="color: var(--vsv-primary);">
+                    <i class="fas fa-arrow-left me-1"></i>Back to Products
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function changeQty(delta) {
+        var input = document.getElementById('qty');
+        var current = parseInt(input.value);
+        var newVal = current + delta;
+        var max = parseInt(input.max);
+        if (newVal >= 1 && newVal <= max) {
+            input.value = newVal;
+        }
+    }
+</script>
+{% endblock %}

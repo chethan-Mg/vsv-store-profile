@@ -1,0 +1,216 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard - VSV Store{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-tachometer-alt me-2 text-success"></i>Admin Dashboard</h2>
+        <span class="text-muted">Welcome, {{ current_user.username }}</span>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-6 col-lg-3">
+            <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #2d6a4f !important;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Total Products</h6>
+                            <h3 class="fw-bold mb-0">{{ total_products }}</h3>
+                        </div>
+                        <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:50px;height:50px;background:#d8f3dc;">
+                            <i class="fas fa-box fa-lg text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #0d6efd !important;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Total Orders</h6>
+                            <h3 class="fw-bold mb-0">{{ total_orders }}</h3>
+                        </div>
+                        <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:50px;height:50px;background:#cfe2ff;">
+                            <i class="fas fa-shopping-bag fa-lg text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #6f42c1 !important;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Total Customers</h6>
+                            <h3 class="fw-bold mb-0">{{ total_users }}</h3>
+                        </div>
+                        <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:50px;height:50px;background:#e2d9f3;">
+                            <i class="fas fa-users fa-lg" style="color:#6f42c1;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #198754 !important;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Revenue</h6>
+                            <h3 class="fw-bold mb-0">₹{{ "%.2f"|format(total_revenue) }}</h3>
+                        </div>
+                        <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:50px;height:50px;background:#d1e7dd;">
+                            <i class="fas fa-rupee-sign fa-lg text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Status Summary -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-6 col-lg-3">
+            <div class="card border-0 shadow-sm text-center py-3">
+                <span class="badge bg-warning text-dark mx-auto mb-2" style="width:fit-content;">Pending</span>
+                <h4 class="mb-0">{{ pending_orders }}</h4>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="card border-0 shadow-sm text-center py-3">
+                <span class="badge bg-info mx-auto mb-2" style="width:fit-content;">Confirmed</span>
+                <h4 class="mb-0">{{ confirmed_orders }}</h4>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="card border-0 shadow-sm text-center py-3">
+                <span class="badge bg-success mx-auto mb-2" style="width:fit-content;">Delivered</span>
+                <h4 class="mb-0">{{ delivered_orders }}</h4>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="card border-0 shadow-sm text-center py-3">
+                <span class="badge bg-danger mx-auto mb-2" style="width:fit-content;">Cancelled</span>
+                <h4 class="mb-0">{{ cancelled_orders }}</h4>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-6 col-lg-3">
+            <a href="{{ url_for('admin_products') }}" class="card border-0 shadow-sm text-decoration-none h-100">
+                <div class="card-body text-center py-4">
+                    <i class="fas fa-boxes fa-2x text-success mb-2"></i>
+                    <h6>Manage Products</h6>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <a href="{{ url_for('admin_categories') }}" class="card border-0 shadow-sm text-decoration-none h-100">
+                <div class="card-body text-center py-4">
+                    <i class="fas fa-tags fa-2x text-primary mb-2"></i>
+                    <h6>Manage Categories</h6>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <a href="{{ url_for('admin_orders') }}" class="card border-0 shadow-sm text-decoration-none h-100">
+                <div class="card-body text-center py-4">
+                    <i class="fas fa-clipboard-list fa-2x text-warning mb-2"></i>
+                    <h6>Manage Orders</h6>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <a href="{{ url_for('admin_users') }}" class="card border-0 shadow-sm text-decoration-none h-100">
+                <div class="card-body text-center py-4">
+                    <i class="fas fa-user-friends fa-2x" style="color:#6f42c1;"></i>
+                    <h6 class="mt-2">View Users</h6>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Recent Orders -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-clock me-2"></i>Recent Orders</h5>
+                    <a href="{{ url_for('admin_orders') }}" class="btn btn-sm btn-outline-success">View All</a>
+                </div>
+                <div class="card-body p-0">
+                    {% if recent_orders %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Customer</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in recent_orders %}
+                                <tr>
+                                    <td>{{ order.id }}</td>
+                                    <td>{{ order.user.username }}</td>
+                                    <td>₹{{ "%.2f"|format(order.total_amount) }}</td>
+                                    <td>
+                                        {% if order.status == 'pending' %}
+                                        <span class="badge bg-warning text-dark">Pending</span>
+                                        {% elif order.status == 'confirmed' %}
+                                        <span class="badge bg-info">Confirmed</span>
+                                        {% elif order.status == 'delivered' %}
+                                        <span class="badge bg-success">Delivered</span>
+                                        {% else %}
+                                        <span class="badge bg-danger">Cancelled</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ order.created_at.strftime('%d %b %Y') }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center py-4">No orders yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Low Stock Alerts -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-exclamation-triangle text-warning me-2"></i>Low Stock Alerts</h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if low_stock_products %}
+                    <ul class="list-group list-group-flush">
+                        {% for product in low_stock_products %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>{{ product.name }}</span>
+                            <span class="badge bg-{{ 'danger' if product.stock <= 3 else 'warning text-dark' }} rounded-pill">
+                                {{ product.stock }} left
+                            </span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="text-muted text-center py-4">All products well stocked! 👍</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

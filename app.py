@@ -229,7 +229,7 @@ def inject_cart_count():
 def inject_categories():
     """Make all categories available in every template for the navbar."""
     categories = Category.query.order_by(Category.name).all()
-    return dict(all_categories=categories)
+    return dict(all_categories=categories, categories=categories)
 
 
 # ---------------------------------------------------------------------------
@@ -237,13 +237,18 @@ def inject_categories():
 # ---------------------------------------------------------------------------
 
 @app.route('/')
+@app.route('/index')
 def home():
     """Landing page – show featured products and categories."""
     categories = Category.query.order_by(Category.name).all()
     featured_products = Product.query.filter(Product.stock > 0).limit(8).all()
     return render_template('home.html',
                            categories=categories,
+                           products=featured_products,
                            featured_products=featured_products)
+
+# Also expose 'index' endpoint alias for url_for('index')
+app.add_url_rule('/', endpoint='index', view_func=home)
 
 
 @app.route('/products')
@@ -285,14 +290,17 @@ def products():
                            products=products_list,
                            categories=categories,
                            active_category=active_category,
+                           current_category=active_category,
                            search_query=search_query,
                            sort_by=sort_by)
 
 
 @app.route('/product/<int:product_id>')
-def product_detail(product_id):
+@app.route('/product/<int:id>')
+def product_detail(product_id=None, id=None):
     """Show detailed view of a single product."""
-    product = Product.query.get_or_404(product_id)
+    pid = product_id if product_id is not None else id
+    product = Product.query.get_or_404(pid)
     related_products = (
         Product.query
         .filter(Product.category_id == product.category_id,
@@ -306,13 +314,18 @@ def product_detail(product_id):
 
 
 @app.route('/category/<int:category_id>')
-def category_products(category_id):
+@app.route('/category/<int:id>')
+def category_products(category_id=None, id=None):
     """Show all products in a specific category."""
-    category = Category.query.get_or_404(category_id)
-    products_list = Product.query.filter_by(category_id=category_id).order_by(Product.name).all()
+    cid = category_id if category_id is not None else id
+    category = Category.query.get_or_404(cid)
+    products_list = Product.query.filter_by(category_id=cid).order_by(Product.name).all()
     return render_template('category.html',
                            category=category,
                            products=products_list)
+
+app.add_url_rule('/category/<int:category_id>', endpoint='category', view_func=category_products)
+app.add_url_rule('/category/<int:id>', endpoint='category', view_func=category_products)
 
 
 # ---------------------------------------------------------------------------
@@ -414,10 +427,12 @@ def cart():
 
 
 @app.route('/cart/add/<int:product_id>', methods=['POST'])
+@app.route('/cart/add/<int:id>', methods=['POST'])
 @login_required
-def add_to_cart(product_id):
+def add_to_cart(product_id=None, id=None):
     """Add a product to the cart (or increase quantity if already present)."""
-    product = Product.query.get_or_404(product_id)
+    pid = product_id if product_id is not None else id
+    product = Product.query.get_or_404(pid)
     quantity = request.form.get('quantity', 1, type=int)
 
     if quantity < 1:
@@ -425,11 +440,11 @@ def add_to_cart(product_id):
 
     if product.stock < quantity:
         flash(f'Sorry, only {product.stock} units of "{product.name}" available.', 'warning')
-        return redirect(url_for('product_detail', product_id=product_id))
+        return redirect(url_for('product_detail', product_id=product.id, id=product.id))
 
     # Check if item already in cart
     cart_item = CartItem.query.filter_by(
-        user_id=current_user.id, product_id=product_id
+        user_id=current_user.id, product_id=product.id
     ).first()
 
     if cart_item:
@@ -441,7 +456,7 @@ def add_to_cart(product_id):
     else:
         cart_item = CartItem(
             user_id=current_user.id,
-            product_id=product_id,
+            product_id=product.id,
             quantity=quantity,
         )
         db.session.add(cart_item)
@@ -452,14 +467,18 @@ def add_to_cart(product_id):
 
 
 @app.route('/cart/update/<int:item_id>', methods=['POST'])
+@app.route('/cart/update/<int:id>', methods=['POST'])
 @login_required
-def update_cart(item_id):
+def update_cart(item_id=None, id=None):
     """Update the quantity of a cart item."""
-    cart_item = CartItem.query.get_or_404(item_id)
-
-    # Ensure the item belongs to the current user
-    if cart_item.user_id != current_user.id:
-        abort(403)
+    target_id = item_id if item_id is not None else id
+    # First try by cart item ID belonging to user
+    cart_item = CartItem.query.filter_by(id=target_id, user_id=current_user.id).first()
+    # If not found, try by product ID for user
+    if not cart_item:
+        cart_item = CartItem.query.filter_by(product_id=target_id, user_id=current_user.id).first()
+    if not cart_item:
+        abort(404)
 
     quantity = request.form.get('quantity', 1, type=int)
 
@@ -478,13 +497,16 @@ def update_cart(item_id):
 
 
 @app.route('/cart/remove/<int:item_id>', methods=['POST'])
+@app.route('/cart/remove/<int:id>', methods=['POST'])
 @login_required
-def remove_from_cart(item_id):
+def remove_from_cart(item_id=None, id=None):
     """Remove an item from the cart entirely."""
-    cart_item = CartItem.query.get_or_404(item_id)
-
-    if cart_item.user_id != current_user.id:
-        abort(403)
+    target_id = item_id if item_id is not None else id
+    cart_item = CartItem.query.filter_by(id=target_id, user_id=current_user.id).first()
+    if not cart_item:
+        cart_item = CartItem.query.filter_by(product_id=target_id, user_id=current_user.id).first()
+    if not cart_item:
+        abort(404)
 
     db.session.delete(cart_item)
     db.session.commit()
@@ -582,12 +604,17 @@ def order_history():
     )
     return render_template('orders.html', orders=orders)
 
+# Also expose 'orders' endpoint alias for url_for('orders')
+app.add_url_rule('/orders', endpoint='orders', view_func=order_history)
+
 
 @app.route('/order/<int:order_id>')
+@app.route('/order/<int:id>')
 @login_required
-def order_detail(order_id):
+def order_detail(order_id=None, id=None):
     """View details of a specific order."""
-    order = Order.query.get_or_404(order_id)
+    oid = order_id if order_id is not None else id
+    order = Order.query.get_or_404(oid)
 
     # Customers can only view their own orders; admins can view any
     if order.user_id != current_user.id and not current_user.is_admin:
@@ -702,10 +729,12 @@ def admin_add_product():
 
 
 @app.route('/admin/product/edit/<int:product_id>', methods=['GET', 'POST'])
+@app.route('/admin/product/edit/<int:id>', methods=['GET', 'POST'])
 @admin_required
-def admin_edit_product(product_id):
+def admin_edit_product(product_id=None, id=None):
     """Edit an existing product."""
-    product = Product.query.get_or_404(product_id)
+    pid = product_id if product_id is not None else id
+    product = Product.query.get_or_404(pid)
     categories = Category.query.order_by(Category.name).all()
 
     if request.method == 'POST':
@@ -738,10 +767,12 @@ def admin_edit_product(product_id):
 
 
 @app.route('/admin/product/delete/<int:product_id>', methods=['POST'])
+@app.route('/admin/product/delete/<int:id>', methods=['POST'])
 @admin_required
-def admin_delete_product(product_id):
+def admin_delete_product(product_id=None, id=None):
     """Delete a product."""
-    product = Product.query.get_or_404(product_id)
+    pid = product_id if product_id is not None else id
+    product = Product.query.get_or_404(pid)
     product_name = product.name
 
     db.session.delete(product)
@@ -789,10 +820,12 @@ def admin_add_category():
 
 
 @app.route('/admin/category/edit/<int:category_id>', methods=['GET', 'POST'])
+@app.route('/admin/category/edit/<int:id>', methods=['GET', 'POST'])
 @admin_required
-def admin_edit_category(category_id):
+def admin_edit_category(category_id=None, id=None):
     """Edit an existing category."""
-    category = Category.query.get_or_404(category_id)
+    cid = category_id if category_id is not None else id
+    category = Category.query.get_or_404(cid)
 
     if request.method == 'POST':
         category.name = request.form.get('name', '').strip()
@@ -813,10 +846,12 @@ def admin_edit_category(category_id):
 
 
 @app.route('/admin/category/delete/<int:category_id>', methods=['POST'])
+@app.route('/admin/category/delete/<int:id>', methods=['POST'])
 @admin_required
-def admin_delete_category(category_id):
+def admin_delete_category(category_id=None, id=None):
     """Delete a category (and all its products)."""
-    category = Category.query.get_or_404(category_id)
+    cid = category_id if category_id is not None else id
+    category = Category.query.get_or_404(cid)
     cat_name = category.name
 
     db.session.delete(category)
@@ -844,10 +879,12 @@ def admin_orders():
 
 
 @app.route('/admin/order/<int:order_id>/update-status', methods=['POST'])
+@app.route('/admin/order/<int:id>/update-status', methods=['POST'])
 @admin_required
-def admin_update_order_status(order_id):
+def admin_update_order_status(order_id=None, id=None):
     """Update the status of an order."""
-    order = Order.query.get_or_404(order_id)
+    oid = order_id if order_id is not None else id
+    order = Order.query.get_or_404(oid)
     new_status = request.form.get('status', '').strip()
 
     valid_statuses = ['pending', 'confirmed', 'delivered', 'cancelled']
